@@ -1,12 +1,9 @@
 #pragma once
+
+#include "pdf/pdf_file.h"
+
 #include <vector>
 #include <string>
-
-class PDFFile
-{
-public:
-	std::string mVersion;
-};
 
 class PDFReader
 {

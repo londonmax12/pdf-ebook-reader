@@ -38,7 +38,7 @@ std::vector<Token> PDFTokenizer::Tokenize()
             mCurrString = "";
             continue;
         }
-            
+
         mCurrString += c;
         if (mCurrString == "%PDF-")
         {
@@ -48,6 +48,17 @@ std::vector<Token> PDFTokenizer::Tokenize()
 
             mCurrIndex += str.size();
             mCurrString = "";
+            continue;
+        }
+        if (mCurrString == "xref") {
+            tokens.push_back({ TokenType::PDF_XREF_TABLE });
+            std::string details = SkipLine();
+            size_t space_pos = details.find(' ');
+            if (space_pos != std::string::npos) {
+                tokens.push_back({ TokenType::PDF_XREF_START_OBJ, details.substr(0, space_pos) });
+                tokens.push_back({ TokenType::PDF_XREF_SIZE, details.substr(space_pos + 1) });
+            }
+
             continue;
         }
     }
@@ -62,12 +73,38 @@ std::string PDFTokenizer::GetNextString()
     char c = mBuffer[i];
 
     while (c != '\0') {
-        if (c == '\n')
+        if (isspace(c))
             break;
 
         str += c;
         i++;
         c = mBuffer[i];
+    }
+    return str;
+}
+
+std::string PDFTokenizer::SkipLine()
+{
+    std::string str = "";
+
+    char c = mBuffer[mCurrIndex];
+
+    while (c != '\0') {
+        mCurrIndex++;
+        if (c == '\n')
+            break;
+        c = mBuffer[mCurrIndex];
+    }
+
+    c = mBuffer[mCurrIndex];
+
+    while (c != '\0') {
+        if (c == '\n')
+            break;
+
+        str += c;
+        mCurrIndex++;
+        c = mBuffer[mCurrIndex];
     }
     return str;
 }

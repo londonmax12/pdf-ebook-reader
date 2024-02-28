@@ -9,6 +9,4 @@ int main() {
 		printf("Failed to parse PDF");
 		return 1;
 	}
-
-	printf(res->mVersion.c_str());
 }

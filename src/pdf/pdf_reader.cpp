@@ -26,7 +26,29 @@ PDFFile* PDFReader::Parse(const char* fp)
         switch (token.Type)
         {
         case PDF_HEADER: {
-            pdf->mVersion = token.Value;
+            pdf->mVersion = token.Value.c_str();
+            break;
+        }
+        case PDF_XREF_SIZE: {
+            try {
+                size_t size = std::stoi(token.Value);
+                pdf->ResizeXRefTable(size);
+            }
+            catch (...) {
+                std::cerr << "Invalid xRef table size\n";
+                return nullptr;
+            }
+            break;
+        }
+        case PDF_XREF_START_OBJ: {
+            try {
+                size_t start = std::stoi(token.Value);
+                pdf->mXRefStartObj = start;
+            }
+            catch (...) {
+                std::cerr << "Invalid xRef table starting object\n";
+                return nullptr;
+            }
             break;
         }
         default:
