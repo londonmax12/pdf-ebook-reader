@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <sstream>
 
 PDFReader::~PDFReader()
 {
@@ -31,8 +32,7 @@ PDFFile* PDFReader::Parse(const char* fp)
         }
         case PDF_XREF_SIZE: {
             try {
-                size_t size = std::stoi(token.Value);
-                pdf->ResizeXRefTable(size);
+                pdf->mXRefSize = std::stoi(token.Value);
             }
             catch (...) {
                 std::cerr << "Invalid xRef table size\n";
@@ -42,14 +42,30 @@ PDFFile* PDFReader::Parse(const char* fp)
         }
         case PDF_XREF_START_OBJ: {
             try {
-                size_t start = std::stoi(token.Value);
-                pdf->mXRefStartObj = start;
+                pdf->mXRefStartObj = std::stoi(token.Value);
             }
             catch (...) {
                 std::cerr << "Invalid xRef table starting object\n";
                 return nullptr;
             }
             break;
+        }
+        case PDF_XREF_ENTRY: {
+            std::istringstream ss(token.Value);
+            std::string obj, gen, status;
+            if (ss >> obj >> gen >> status) {
+                try {
+                    int o = std::stoi(obj);
+                    pdf->mTable[o] = { o, std::stoi(gen), status == "f" ? XRefFree : XRefInUse };
+                }
+                catch (...) {
+                    std::cerr << "Invalid xRef table entry\n";
+                }
+            }
+            else {
+                std::cerr << "Invalid xRef table entry\n";
+                return nullptr;
+            }
         }
         default:
             break;

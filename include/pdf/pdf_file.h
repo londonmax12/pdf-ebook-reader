@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 class PDFReader;
 
@@ -22,18 +23,6 @@ struct XRefEntry
 	XRefStatus Status = XRefNone;
 };
 
-class XRefTable
-{
-public:
-	void Resize(size_t size);
-
-	void AddEntry(XRefEntry entry);
-	XRefEntry GetEntry(size_t entry);
-private:
-	int Hash(int key);
-	std::vector<XRefEntry> mTable;
-};
-
 class PDFFile
 {
 public:
@@ -41,10 +30,8 @@ public:
 
 	friend class PDFReader;
 private:
-	void ResizeXRefTable(size_t size);
-
 	std::string mVersion = "";
 	size_t mXRefSize = 0;
 	size_t mXRefStartObj = 0;
-	XRefTable mXRefTable;
+	std::unordered_map<int, XRefEntry> mTable;
 };

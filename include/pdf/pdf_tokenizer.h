@@ -8,7 +8,9 @@ enum TokenType {
 	PDF_HEADER,
 	PDF_XREF_TABLE,
 	PDF_XREF_START_OBJ,
-	PDF_XREF_SIZE
+	PDF_XREF_SIZE,
+	PDF_XREF_ENTRY,
+	PDF_TRAILER,
 };
 
 struct Token {
@@ -22,8 +24,12 @@ class PDFTokenizer {
 public:
 	PDFTokenizer(const char* fp);
 	std::vector<Token> Tokenize();
+
+	std::string PeekNextString();
 	std::string GetNextString();
-	std::string SkipLine();
+
+	std::string PeekNextLine();
+	std::string GetNextLine();
 
 private:
 	const char* mFP = "";
