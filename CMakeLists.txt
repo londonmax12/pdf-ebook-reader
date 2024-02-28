@@ -1,9 +1,13 @@
 cmake_minimum_required(VERSION 3.0)
 project(pdf_reader)
 
-file(GLOB SOURCES "src/*.cpp")
-
-file(GLOB HEADERS "include/*.h")
+set(SOURCES
+    src/main.cpp
+    src/pdf/pdf_reader.cpp
+)
+set(HEADERS
+    include/pdf/pdf_reader.h
+)
 
 include_directories(include)
 

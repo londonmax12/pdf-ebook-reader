@@ -1,5 +1,14 @@
 #include <stdio.h>
+#include "pdf/pdf_reader.h"
 
 int main() {
-	printf("Hello world");
+	PDFReader reader{};
+	PDFFile* res = reader.Parse("examples/pride_and_prejudice.pdf");
+
+	if (!res) {
+		printf("Failed to parse PDF");
+		return 1;
+	}
+
+	printf(res->mVersion.c_str());
 }
