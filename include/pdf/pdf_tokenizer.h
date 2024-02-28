@@ -11,6 +11,11 @@ enum TokenType {
 	PDF_XREF_SIZE,
 	PDF_XREF_ENTRY,
 	PDF_TRAILER,
+	PDF_TRAILER_SIZE,
+	PDF_TRAILER_ROOT,
+	PDF_TRAILER_INFO,
+	PDF_TRAILER_INITIAL_ID,
+	PDF_TRAILER_UPDATE_ID,
 };
 
 struct Token {
@@ -26,7 +31,7 @@ public:
 	std::vector<Token> Tokenize();
 
 	std::string PeekNextString();
-	std::string GetNextString();
+	std::string GetNextString(bool incSpace = false);
 
 	std::string PeekNextLine();
 	std::string GetNextLine();

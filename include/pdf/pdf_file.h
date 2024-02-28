@@ -34,4 +34,9 @@ private:
 	size_t mXRefSize = 0;
 	size_t mXRefStartObj = 0;
 	std::unordered_map<int, XRefEntry> mTable;
+	size_t mTrailerSize = 0;
+	XRefEntry mTrailerRoot{};
+	XRefEntry mTrailerInfo{};
+	std::string mInitialID = "";
+	std::string mUpdateID = "";
 };

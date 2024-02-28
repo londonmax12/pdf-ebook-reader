@@ -50,10 +50,13 @@ std::vector<Token> PDFTokenizer::Tokenize()
             tokens.push_back({ TokenType::PDF_XREF_TABLE });
             std::string details = GetNextLine();
             size_t space_pos = details.find(' ');
-            if (space_pos != std::string::npos) {
-                tokens.push_back({ TokenType::PDF_XREF_START_OBJ, details.substr(0, space_pos) });
-                tokens.push_back({ TokenType::PDF_XREF_SIZE, details.substr(space_pos + 1) });
+            if (space_pos == std::string::npos) {
+                std::cerr << "Invalid xref table details";
+                return tokens;
             }
+
+            tokens.push_back({ TokenType::PDF_XREF_START_OBJ, details.substr(0, space_pos) });
+            tokens.push_back({ TokenType::PDF_XREF_SIZE, details.substr(space_pos + 1) });
 
             std::string nextLine = GetNextLine();
             while (nextLine != "trailer")
@@ -61,7 +64,36 @@ std::vector<Token> PDFTokenizer::Tokenize()
                 tokens.push_back({ TokenType::PDF_XREF_ENTRY, nextLine });
                 nextLine = GetNextLine();
             }
-            tokens.push_back({ TokenType::PDF_TRAILER, nextLine });
+            tokens.push_back({ TokenType::PDF_TRAILER, ""});           
+            GetNextLine();
+            std::string str = GetNextString();
+            while (str != ">>")
+            {
+                if (str == "/Size") {
+                    tokens.push_back({ TokenType::PDF_TRAILER_SIZE, GetNextString() });
+                }
+                if (str == "/Root") {
+                    tokens.push_back({ TokenType::PDF_TRAILER_ROOT, GetNextString(true) });
+                }
+                if (str == "/ID") {
+                    std::string initialID = GetNextString(false);
+                    initialID = initialID.substr(2, initialID.size() - 3);
+
+                    std::string updateID = GetNextString(false);
+                    updateID = updateID.substr(1, updateID.size() - 3);
+
+                    tokens.push_back({ TokenType::PDF_TRAILER_INITIAL_ID, initialID });
+                    tokens.push_back({ TokenType::PDF_TRAILER_UPDATE_ID, updateID });
+                }
+
+                if (str == "/Info") {
+                    tokens.push_back({ TokenType::PDF_TRAILER_INFO, GetNextString(true) });
+                }
+                str = GetNextString();
+            }
+            std::string d = GetNextLine();
+            std::string g = GetNextLine();
+            PeekNextLine();
             continue;
         }
     }
@@ -75,6 +107,11 @@ std::string PDFTokenizer::PeekNextString()
     int i = mCurrIndex + 1;
     char c = mBuffer[i];
 
+    if (isspace(c)) {
+        i++;
+        c = mBuffer[i];
+    }
+
     while (c != '\0' && !isspace(c)) {
         str += c;
         i++;
@@ -83,11 +120,19 @@ std::string PDFTokenizer::PeekNextString()
     return str;
 }
 
-std::string PDFTokenizer::GetNextString()
+std::string PDFTokenizer::GetNextString(bool incSpace)
 {
     std::string str = "";
     char c = mBuffer[mCurrIndex];
-    while (c != '\0' && !isspace(c)) {
+
+    if (isspace(c)) {
+        mCurrIndex++;
+        c = mBuffer[mCurrIndex];
+    }
+
+    while (c != '\0') {
+        if ((isspace(c) && !incSpace) || c == '\n')
+            break;
         str += c;
         mCurrIndex++;
         c = mBuffer[mCurrIndex];
