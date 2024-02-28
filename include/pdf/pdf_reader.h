@@ -15,6 +15,7 @@ public:
 
 	PDFFile* Parse(const char* fp);
 
+	
 private:
 	std::vector<PDFFile*> mPDFFiles;
 };
