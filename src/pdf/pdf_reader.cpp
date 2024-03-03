@@ -1,6 +1,7 @@
 #include "pdf/pdf_reader.h"
 
 #include "pdf/pdf_tokenizer.h"
+#include "pdf/pdf_parser.h"
 
 #include <fstream>
 #include <iostream>
@@ -14,118 +15,78 @@ PDFReader::~PDFReader()
     }
 }
 
-PDFFile* PDFReader::Parse(const char* fp)
+PDFFile* PDFReader::Read(const char* fp)
 {
-   
-    PDFFile* pdf = new PDFFile();
+    PDFFile* pdf = new PDFFile(fp);
     mPDFFiles.push_back(pdf);
 
-    PDFTokenizer tokenizer{ fp };
-    std::vector<Token> tokens = tokenizer.Tokenize();
+    PDFTokenizer tokenizer{ pdf->mFilepath };
+    if (!tokenizer.Tokenize(mTokens))
+        return nullptr;
 
-    for (Token& token : tokens) {
+    PDFParser parser{ mTokens };
+    if (!parser.Parse())
+        return nullptr;
+
+    ProcessTokens();
+    
+    return pdf;
+}
+
+void PDFReader::ProcessTokens()
+{
+    PDFFile* pdf = mPDFFiles.back();
+
+    for (int i = 0; i < mTokens.size(); i++) {
+        auto& token = mTokens[i];
+
         switch (token.Type)
         {
-        case PDF_HEADER: {
-            pdf->mVersion = token.Value.c_str();
+        case PDF_VERSION:
+            pdf->mVersion = std::get<std::string>(token.Value);
             break;
-        }
-        case PDF_XREF_SIZE: {
-            try {
-                pdf->mXRefSize = std::stoi(token.Value);
-            }
-            catch (...) {
-                std::cerr << "Invalid xRef table size\n";
-                return nullptr;
-            }
-            break;
-        }
-        case PDF_XREF_START_OBJ: {
-            try {
-                pdf->mXRefStartObj = std::stoi(token.Value);
-            }
-            catch (...) {
-                std::cerr << "Invalid xRef table starting object\n";
-                return nullptr;
+        case PDF_XREF:
+            if ((i + 2) >= mTokens.size())
+                return;
+
+            i++;
+            pdf->mXRefStartObj = std::get<size_t>(mTokens[i].Value);
+            i++;
+            pdf->mXRefSize = std::get<size_t>(mTokens[i].Value);
+            for (int j = 0; j < pdf->mXRefSize; j++) {
+                i++;
+                XRefEntry t = std::get<XRefEntry>(mTokens[i].Value);
+                
+                pdf->mXRefTable[t.Object] = t;
             }
             break;
-        }
-        case PDF_XREF_ENTRY: {
-            std::istringstream ss(token.Value);
-            std::string obj, gen, status;
-            if (ss >> obj >> gen >> status) {
-                try {
-                    int o = std::stoi(obj);
-                    pdf->mTable[o] = { o, std::stoi(gen), status == "f" ? XRefFree : XRefInUse };
+        case PDF_TRAILER:
+            if ((i + 5) >= mTokens.size())
+                return;
+            for (int j = 0; j < 5; j++) {
+                i++;
+                if (mTokens[i].Type != PDF_VAR) return;
+                
+                Var& var = std::get<Var>(mTokens[i].Value);
+                if (var.Name == "Size") {
+                    pdf->mTrailerSize = std::get<size_t>(var.Value);
                 }
-                catch (...) {
-                    std::cerr << "Invalid xRef table entry\n";
+                else if (var.Name == "Root") {
+                    pdf->mTrailerRoot = std::get<XRefEntry>(var.Value);
                 }
-            }
-            else {
-                std::cerr << "Invalid xRef table entry\n";
-                return nullptr;
-            }
-            break;
-        }
-        case PDF_TRAILER_SIZE: {
-            try {
-                pdf->mTrailerSize = std::stoi(token.Value);
-            }
-            catch (...) {
-                std::cerr << "Invalid xRef table starting object\n";
-                return nullptr;
-            }
-            break;
-        }
-        case PDF_TRAILER_ROOT: {
-            std::istringstream ss(token.Value);
-            std::string obj, gen, _;
-            if (ss >> obj >> gen >> _) {
-                try {
-                    int o = std::stoi(obj);
-                    pdf->mTrailerRoot = { o, std::stoi(gen), XRefNone};
+                else if (var.Name == "Info") {
+                    pdf->mTrailerInfo = std::get<XRefEntry>(var.Value);
                 }
-                catch (...) {
-                    std::cerr << "Invalid trailer root\n";
+                else if (var.Name == "FileID") {
+                    pdf->mFileID = std::get<std::string>(var.Value);
+                }
+                else if (var.Name == "UpdateID") {
+                    pdf->mUpdateID = std::get<std::string>(var.Value);
                 }
             }
-            else {
-                std::cerr << "Invalid trailer root\n";
-                return nullptr;
-            }
             break;
-        }
-        case PDF_TRAILER_INFO: {
-            std::istringstream ss(token.Value);
-            std::string obj, gen, _;
-            if (ss >> obj >> gen >> _) {
-                try {
-                    int o = std::stoi(obj);
-                    pdf->mTrailerInfo = { o, std::stoi(gen), XRefNone };
-                }
-                catch (...) {
-                    std::cerr << "Invalid trailer info\n";
-                }
-            }
-            else {
-                std::cerr << "Invalid trailer info\n";
-                return nullptr;
-            }
-            break;
-        }
-        case PDF_TRAILER_INITIAL_ID: {
-            pdf->mInitialID = token.Value;
-            break;
-        }
-        case PDF_TRAILER_UPDATE_ID: {
-            pdf->mUpdateID = token.Value;
-            break;
-        }
         default:
             break;
         }
     }
-
-    return pdf;
 }

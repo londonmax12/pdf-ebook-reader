@@ -3,10 +3,10 @@
 
 int main() {
 	PDFReader reader{};
-	PDFFile* res = reader.Parse("examples/pride_and_prejudice.pdf");
+	PDFFile* res = reader.Read("examples/pride_and_prejudice.pdf");
 
 	if (!res) {
-		printf("Failed to parse PDF");
+		printf("Failed to read PDF");
 		return 1;
 	}
 }
