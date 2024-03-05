@@ -13,6 +13,30 @@ bool PDFParser::Parse()
             newTokens.push_back(token);
             break;
         }
+        case PDF_OBJ:
+        {
+            int index = mIndex;
+
+            GoToNextType(PDF_INT, -1);
+            CResult genRes = ConvertStr<int>(std::get<std::string>(mTokens[mIndex].Value));
+            if (!genRes.Success)
+                return false;
+            int gen = genRes.Value;
+
+            GoToNextType(PDF_INT, -1);
+            CResult objRes = ConvertStr<size_t>(std::get<std::string>(mTokens[mIndex].Value));
+            if (!objRes.Success)
+                return false;
+            size_t obj = objRes.Value;
+
+            mIndex = index;
+
+            Resource* resource = mResources->AllocateResource(obj, gen);
+
+            newTokens.push_back({PDF_OBJ, resource->NameValue});
+
+            break;
+        }
 	    case PDF_XREF:
         {
             newTokens.push_back({ PDF_XREF, "" });
@@ -116,9 +140,9 @@ bool PDFParser::Parse()
     return true;
 }
 
-bool PDFParser::GoToNextType(TokenType type)
+bool PDFParser::GoToNextType(TokenType type, int step)
 {
-    mIndex++;
+    mIndex += step;
     if (mIndex >= mTokens.size())
         return false;
 
@@ -126,7 +150,9 @@ bool PDFParser::GoToNextType(TokenType type)
     while (mIndex < mTokens.size()) {
         if (t.Type == type)
             return true;
-        mIndex++;
+        mIndex += step;
+        if (mIndex >= mTokens.size())
+            return false;
         t = mTokens[mIndex];
     }
     return false;

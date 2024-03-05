@@ -1,6 +1,7 @@
 #pragma once
 
-#include "pdf_tokens.h"
+#include "pdf/pdf_tokens.h"
+#include "resources/resource_manager.h"
 
 #include <vector>
 #include <string>
@@ -27,4 +28,6 @@ private:
 	XRefEntry mTrailerInfo{};
 	std::string mFileID = "";
 	std::string mUpdateID = "";
+
+	ResourceManager mResources;
 };

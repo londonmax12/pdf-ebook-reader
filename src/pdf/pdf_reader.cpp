@@ -24,7 +24,7 @@ PDFFile* PDFReader::Read(const char* fp)
     if (!tokenizer.Tokenize(mTokens))
         return nullptr;
 
-    PDFParser parser{ mTokens };
+    PDFParser parser{ mTokens, &pdf->mResources };
     if (!parser.Parse())
         return nullptr;
 

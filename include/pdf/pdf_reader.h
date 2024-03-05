@@ -2,6 +2,7 @@
 
 #include "pdf/pdf_file.h"
 #include "pdf/pdf_tokens.h"
+#include "resources/resource_manager.h"
 
 #include <vector>
 #include <string>

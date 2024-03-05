@@ -2,16 +2,18 @@
 
 #include "pdf/pdf_tokens.h"
 #include "pdf/pdf_tokenizer.h"
+#include "resources/resource_manager.h"
 
 class PDFParser {
 public:
-	PDFParser(std::vector<Token>& tokens) : mTokens(tokens) {};
+	PDFParser(std::vector<Token>& tokens, ResourceManager* resourceManager) : mTokens(tokens), mResources(resourceManager) {};
 	bool Parse();
 private:
 	std::vector<Token>& mTokens;
+	ResourceManager* mResources;
 	int mIndex = 0;
 
-	bool GoToNextType(TokenType type);
+	bool GoToNextType(TokenType type, int step = 1);
 
 	template <typename T>
 	struct CResult {

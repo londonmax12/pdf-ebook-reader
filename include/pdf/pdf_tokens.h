@@ -18,7 +18,8 @@ enum TokenType {
 	PDF_VAR,
 	PDF_BEGIN,
 	PDF_END,
-	PDF_XREF_ENTRY
+	PDF_XREF_ENTRY,
+	PDF_OBJ,
 };
 
 enum XRefStatus {

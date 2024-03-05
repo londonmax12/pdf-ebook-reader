@@ -12,6 +12,7 @@ set(SOURCES
     src/pdf/pdf_tokenizer.cpp
     src/pdf/pdf_tokens.cpp
     src/pdf/pdf_parser.cpp
+    src/resources/resource_manager.cpp
 )
 set(HEADERS
     include/pdf/pdf_file.h
@@ -19,6 +20,7 @@ set(HEADERS
     include/pdf/pdf_tokenizer.h
     include/pdf/pdf_tokens.h
     include/pdf/pdf_parser.h
+    include/resources/resource_manager.h
 )
 
 include_directories(include)

@@ -80,6 +80,7 @@ void PDFTokenizer::AddToken(std::vector<Token>& tokens, const std::string& token
     else if (tokenString.size() == 1) tokens.push_back({ PDF_CHAR, tokenString });
     else if (tokenString == "xref") tokens.push_back({ PDF_XREF, "" });
     else if (tokenString == "trailer") tokens.push_back({ PDF_TRAILER, "" });
+    else if (tokenString == "obj") tokens.push_back({ PDF_OBJ, "" });
     else if (tokenString == ">>") tokens.push_back({ PDF_END, "" });
     else if (tokenString == "<<") tokens.push_back({ PDF_BEGIN, "" });
 
