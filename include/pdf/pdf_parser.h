@@ -13,7 +13,7 @@ private:
 	ResourceManager* mResources;
 	int mIndex = 0;
 
-	bool GoToNextType(TokenType type, int step = 1);
+	bool GoToNextType(TokenType type, int step = 1, TokenType stopAt = PDF_UNKNOWN);
 
 	template <typename T>
 	struct CResult {

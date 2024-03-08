@@ -11,19 +11,20 @@ ResourceManager::~ResourceManager()
 	mResources.clear();
 }
 
-Resource* ResourceManager::AllocateResource(int id, int genNumber)
+Resource::~Resource()
 {
-	std::ostringstream ss;
-	ss << id << "_" << genNumber;
-	std::string key = ss.str();
-	if (mResources.count(key) != 0 && mResources[key]) {
-		delete mResources[key];
-		mResources[key] = nullptr;
-	}
+	if (Type == TYPE_STREAM)
+		if (StreamValue.Size && StreamValue.Data)
+			free(StreamValue.Data);
+}
 
-	Resource* resource = new Resource();
-	resource->NameValue = key;
-	mResources[key] = resource;
+Stream::Stream(const size_t& size)
+{
+	Allocate(size);
+}
 
-	return resource;
+void Stream::Allocate(const size_t& size)
+{
+	Size = size;
+	Data = (char*)malloc(Size);
 }

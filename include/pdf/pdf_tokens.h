@@ -19,6 +19,8 @@ enum TokenType {
 	PDF_BEGIN,
 	PDF_END,
 	PDF_XREF_ENTRY,
+	PDF_OBJ_START,
+	PDF_OBJ_END,
 	PDF_OBJ,
 };
 
